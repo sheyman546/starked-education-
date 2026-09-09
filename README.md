@@ -6,7 +6,7 @@ StarkEd is a decentralized learning and credential-verification platform built o
 >
 > | Asset | Address / URL |
 > |---|---|
-> | **Live Demo (Frontend)** | `https://starked-edu.vercel.app` <!-- TODO: replace with deployed frontend URL --> |
+> | **Live Demo (Frontend)** | `https://starked-education-frontend.vercel.app` ✅ deployed |
 > | **Live API (Backend)** | `https://starked-api.onrender.com` <!-- TODO: replace with deployed backend URL --> |
 > | **Soroban Contract — Credential Registry** | `C...` <!-- TODO: paste contract ID from deploy-testnet.sh output --> |
 > | **Soroban Contract — Course Metadata** | `C...` <!-- TODO: paste contract ID from deploy-testnet.sh output --> |
