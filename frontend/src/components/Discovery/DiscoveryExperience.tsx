@@ -18,9 +18,8 @@ import {
   Search as SearchIcon,
   Sparkles,
   Wand2,
-} from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-
+} from 'lucide-react';import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import CourseCard from './CourseCard';
 import { CourseGridSkeleton } from './CourseCardSkeleton';
 import FilterPanel from './FilterPanel';

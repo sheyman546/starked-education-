@@ -580,8 +580,8 @@ const InteractiveTimelineMap: React.FC<InteractiveTimelineMapProps> = ({
                 {selectedEvent.media.type === 'image' && (
                   <div className="relative w-full max-w-xs aspect-[16/9] overflow-hidden rounded-lg">
                     <Image
-                      src={selectedEvent.media.url}
-                      alt={selectedEvent.media.caption}
+                      src={selectedEvent.media.url ?? ''}
+                      alt={selectedEvent.media.caption ?? ''}
                       fill
                       sizes="320px"
                       className="object-cover"

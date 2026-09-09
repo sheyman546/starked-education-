@@ -15,16 +15,17 @@ use crate::{
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-fn setup() -> (Env, Address, Address, Address) {
+fn setup() -> (Env, Address, Address, Address, Address) {
     let env = Env::default();
-    // Register a contract so require_auth has a host context
-    env.register_contract(None, StarkEdContract);
+    // Register a contract so require_auth has a host context, and return its
+    // address so tests can run storage accesses inside `env.as_contract`.
+    let contract = env.register_contract(None, StarkEdContract);
     env.mock_all_auths();
 
     let proposer = Address::generate(&env);
     let student_a = Address::generate(&env); // eligible
     let student_b = Address::generate(&env); // ineligible
-    (env, proposer, student_a, student_b)
+    (env, contract, proposer, student_a, student_b)
 }
 
 fn eligibility(env: &Env) -> EligibilityCriteria {
@@ -35,10 +36,12 @@ fn eligibility(env: &Env) -> EligibilityCriteria {
 }
 
 /// Seed the treasury so scholarship funds can be reserved.
-fn fund_treasury(env: &Env, amount: i128) {
-    env.storage()
-        .instance()
-        .set(&GovernanceDataKey::TreasuryBalance, &amount);
+fn fund_treasury(env: &Env, contract: &Address, amount: i128) {
+    env.as_contract(contract, || {
+        env.storage()
+            .instance()
+            .set(&GovernanceDataKey::TreasuryBalance, &amount);
+    });
 }
 
 /// Advance ledger time by `secs` seconds.
@@ -46,128 +49,146 @@ fn advance(env: &Env, secs: u64) {
     env.ledger().with_mut(|l| l.timestamp += secs);
 }
 
-fn create_valid_proposal(env: &Env, proposer: Address, title: &str) -> u64 {
-    Governance::create_proposal(
-        env.clone(),
-        proposer,
-        String::from_str(env, title),
-        String::from_str(env, "Fund CS students"),
-        3600,
-        10,
-    )
+fn create_valid_proposal(env: &Env, contract: &Address, proposer: Address, title: &str) -> u64 {
+    env.as_contract(contract, || {
+        Governance::create_proposal(
+            env.clone(),
+            proposer,
+            String::from_str(env, title),
+            String::from_str(env, "Fund CS students"),
+            3600,
+            10,
+        )
+    })
 }
 
 // ── tests ─────────────────────────────────────────────────────────────────────
 
 #[test]
 fn test_create_proposal_with_valid_input() {
-    let (env, proposer, _, _) = setup();
+    let (env, contract, proposer, _, _) = setup();
 
-    let pid = create_valid_proposal(&env, proposer, "CS Scholarship");
+    env.as_contract(&contract, || {
+        let pid = create_valid_proposal(&env, &contract, proposer.clone(), "CS Scholarship");
 
-    assert_eq!(pid, 1);
-    let proposal: crate::governance::Proposal = env
-        .storage()
-        .instance()
-        .get(&GovernanceDataKey::Proposal(pid))
-        .unwrap();
-    assert_eq!(proposal.title, String::from_str(&env, "CS Scholarship"));
+        assert_eq!(pid, 1);
+        let proposal: crate::governance::Proposal = env
+            .storage()
+            .instance()
+            .get(&GovernanceDataKey::Proposal(pid))
+            .unwrap();
+        assert_eq!(proposal.title, String::from_str(&env, "CS Scholarship"));
+    });
 }
 
 #[test]
 #[should_panic(expected = "InvalidTitle: title must be non-empty")]
 fn test_create_proposal_rejects_empty_title() {
-    let (env, proposer, _, _) = setup();
+    let (env, contract, proposer, _, _) = setup();
 
-    Governance::create_proposal(
-        env.clone(),
-        proposer,
+    env.as_contract(&contract, || {
+        Governance::create_proposal(
+            env.clone(),
+            proposer,
         String::from_str(&env, ""),
         String::from_str(&env, "Fund CS students"),
         3600,
         10,
     );
+    });
 }
 
 #[test]
 #[should_panic(expected = "InvalidTitle: title exceeds 200 bytes")]
 fn test_create_proposal_rejects_title_over_200_bytes() {
-    let (env, proposer, _, _) = setup();
+    let (env, contract, proposer, _, _) = setup();
 
-    Governance::create_proposal(
-        env.clone(),
-        proposer,
+    env.as_contract(&contract, || {
+        Governance::create_proposal(
+            env.clone(),
+            proposer,
         String::from_str(&env, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
         String::from_str(&env, "Fund CS students"),
         3600,
         10,
     );
+    });
 }
 
 #[test]
 #[should_panic(expected = "InvalidDescription: description exceeds 2000 bytes")]
 fn test_create_proposal_rejects_description_over_2000_bytes() {
-    let (env, proposer, _, _) = setup();
+    let (env, contract, proposer, _, _) = setup();
 
-    Governance::create_proposal(
-        env.clone(),
-        proposer,
+    env.as_contract(&contract, || {
+        Governance::create_proposal(
+            env.clone(),
+            proposer,
         String::from_str(&env, "CS Scholarship"),
         String::from_str(&env, "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"),
         3600,
         10,
     );
+    });
 }
 
 #[test]
 #[should_panic(expected = "InvalidVotingPeriod: voting period out of bounds")]
 fn test_create_proposal_rejects_short_voting_period() {
-    let (env, proposer, _, _) = setup();
+    let (env, contract, proposer, _, _) = setup();
 
-    Governance::create_proposal(
-        env.clone(),
-        proposer,
+    env.as_contract(&contract, || {
+        Governance::create_proposal(
+            env.clone(),
+            proposer,
         String::from_str(&env, "CS Scholarship"),
         String::from_str(&env, "Fund CS students"),
         299,
         10,
     );
+    });
 }
 
 #[test]
 #[should_panic(expected = "InvalidVotingPeriod: voting period out of bounds")]
 fn test_create_proposal_rejects_long_voting_period() {
-    let (env, proposer, _, _) = setup();
+    let (env, contract, proposer, _, _) = setup();
 
-    Governance::create_proposal(
-        env.clone(),
-        proposer,
+    env.as_contract(&contract, || {
+        Governance::create_proposal(
+            env.clone(),
+            proposer,
         String::from_str(&env, "CS Scholarship"),
         String::from_str(&env, "Fund CS students"),
         30 * 24 * 60 * 60 + 1,
         10,
     );
+    });
 }
 
 #[test]
 #[should_panic(expected = "DuplicateProposal: proposer submitted same title within cooldown")]
 fn test_create_proposal_rejects_duplicate_title_within_cooldown() {
-    let (env, proposer, _, _) = setup();
+    let (env, contract, proposer, _, _) = setup();
 
-    create_valid_proposal(&env, proposer.clone(), "CS Scholarship");
-    create_valid_proposal(&env, proposer, "CS Scholarship");
+    env.as_contract(&contract, || {
+        create_valid_proposal(&env, &contract, proposer.clone(), "CS Scholarship");
+        create_valid_proposal(&env, &contract, proposer, "CS Scholarship");
+    });
 }
 
 #[test]
 fn test_create_proposal_allows_duplicate_title_after_cooldown() {
-    let (env, proposer, _, _) = setup();
+    let (env, contract, proposer, _, _) = setup();
 
-    let first = create_valid_proposal(&env, proposer.clone(), "CS Scholarship");
-    advance(&env, 24 * 60 * 60);
-    let second = create_valid_proposal(&env, proposer, "CS Scholarship");
+    env.as_contract(&contract, || {
+        let first = create_valid_proposal(&env, &contract, proposer.clone(), "CS Scholarship");
+        advance(&env, 24 * 60 * 60);
+        let second = create_valid_proposal(&env, &contract, proposer, "CS Scholarship");
 
-    assert_eq!(first, 1);
-    assert_eq!(second, 2);
+        assert_eq!(first, 1);
+        assert_eq!(second, 2);
+    });
 }
 
 /// 1. Create a scholarship proposal and verify it is stored correctly.

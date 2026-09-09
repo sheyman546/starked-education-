@@ -5,7 +5,7 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ProgressIndicatorProps {
-  steps: { id: string; label: string }[];
+  steps: readonly { id: string; label: string }[];
   currentStep: number;
   className?: string;
 }

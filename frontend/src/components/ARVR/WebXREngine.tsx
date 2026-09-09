@@ -331,13 +331,13 @@ export function WebXREngine({
       // Check for VR support
       let vrSupported = false;
       if (enableVR) {
-        vrSupported = await navigator.xr.isSessionSupported('immersive-vr');
+        vrSupported = (await navigator.xr?.isSessionSupported('immersive-vr')) ?? false;
       }
 
       // Check for AR support
       let arSupported = false;
       if (enableAR) {
-        arSupported = await navigator.xr.isSessionSupported('immersive-ar');
+        arSupported = (await navigator.xr?.isSessionSupported('immersive-ar')) ?? false;
       }
 
       // Discover available devices
@@ -474,7 +474,7 @@ export function WebXREngine({
       const xrSessionMode = mode === 'vr' ? 'immersive-vr' as const : 'immersive-ar' as const;
 
       // Create session
-      const session = await navigator.xr.requestSession(xrSessionMode, {
+      const session = await navigator.xr!.requestSession(xrSessionMode, {
         requiredFeatures: ['local', 'input'],
         optionalFeatures: [
           'hand-tracking',
@@ -700,7 +700,7 @@ export function WebXREngine({
     if (typeof window !== 'undefined' && !navigator.xr) {
       const session = currentSession;
       if (session) {
-        const endedSession = { ...session, state: 'ending' };
+        const endedSession: XRSessionInfo = { ...session, state: 'ending' as XRSessionState };
         setCurrentSession(endedSession);
         onSessionEnd?.(endedSession);
       }

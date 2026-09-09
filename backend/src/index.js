@@ -90,7 +90,6 @@ const webhookRoutes = resolveRoute(require('./routes/webhookRoutes'));
 
 // Your branch routes
 const collaborationRoutes = resolveRoute(require('./routes/collaborationRoutes'));
-const holographicRoutes = resolveRoute(require('./routes/holographicRoutes'));
 let secureCommRoutes;
 try {
   secureCommRoutes = resolveRoute(require('./routes/secureCommRoutes'));
@@ -213,7 +212,6 @@ v1Router.use('/transactions', routeTimeout(TIMEOUTS.write, { label: 'transaction
 v1Router.use('/notifications', routeTimeout(TIMEOUTS.read, { label: 'notifications' }), notificationRoutes);
 v1Router.use('/webhooks', routeTimeout(TIMEOUTS.write, { label: 'webhooks' }), webhookRoutes);
 v1Router.use('/collaboration', routeTimeout(TIMEOUTS.realtime, { label: 'collaboration' }), collaborationRoutes);
-v1Router.use('/holographic', routeTimeout(TIMEOUTS.upload, { label: 'holographic' }), circuitBreakerMiddleware('ipfs', { failureThreshold: 3, timeoutWindow: 30000, halfOpenMaxRequests: 2 }), holographicRoutes);
 v1Router.use('/aco', routeTimeout(TIMEOUTS.external, { label: 'aco' }), acoRoutes);
 v1Router.use('/federated-learning', routeTimeout(TIMEOUTS.external, { label: 'federated-learning' }), federatedLearningRoutes);
 v1Router.use('/swarm-learning', routeTimeout(TIMEOUTS.external, { label: 'swarm-learning' }), swarmLearningRoutes);
@@ -399,7 +397,6 @@ async function startServer() {
       console.log(`📁 Content Management API available at /api/v1/content`);
       console.log(`💰 Transaction Queue API available at /api/v1/transactions`);
       console.log(`🤝 Collaboration API available at /api/v1/collaboration`);
-      console.log(`🔮 Holographic Storage API available at /api/v1/holographic`);
       console.log(`🧠 ACO API available at /api/v1/aco`);
       console.log(`🌐 Federated Learning API available at /api/v1/federated-learning`);
       console.log(`🧠 AGI Tutor API available at /api/v1/agi-tutor`);

@@ -77,7 +77,7 @@ const DragDropLearningActivity: React.FC<DragDropActivityProps> = ({
     setDroppedItems(initialDropped);
   }, [targets]);
 
-  const handleDragStart = (e: React.DragEvent, item: DragDropItem) => {
+  const handleDragStart = (e: PointerEvent | MouseEvent | TouchEvent, item: DragDropItem) => {
     setDraggedItem(item);
     setItemStartTimes(prev => new Map(prev.set(item.id, Date.now())));
     

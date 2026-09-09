@@ -520,8 +520,8 @@ const InteractiveQuiz: React.FC<InteractiveQuizProps> = ({
             {currentQuestion.media.type === 'image' && (
               <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg">
                 <Image
-                  src={currentQuestion.media.url}
-                  alt={currentQuestion.media.caption}
+                  src={currentQuestion.media.url ?? ''}
+                  alt={currentQuestion.media.caption ?? ''}
                   fill
                   sizes="100vw"
                   className="object-cover"

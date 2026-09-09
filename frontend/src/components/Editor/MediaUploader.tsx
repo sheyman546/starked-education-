@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, File, Image as ImageIcon, Video, Music, Link as LinkIcon, Youtube } from 'lucide-react';
+import { Upload, X, File, Image as ImageIcon, Video, Music, Link as LinkIcon, Youtube, FileImage, FileVideo, FileText, AlertCircle, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

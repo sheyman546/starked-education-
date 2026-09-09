@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Course, WalletInfo, EnrollmentData, EnrollmentConfirmation } from '@/types/enrollment';
 
+import { CourseJsonLd } from '@/components/SEO';
+
 const EnrollmentForm = dynamic(
   () => import('@/components/EnrollmentForm'),
   {

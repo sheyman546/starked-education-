@@ -1,4 +1,4 @@
-import i18n from 'i18next';
+import i18n, { type InitOptions } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { isRTL } from './rtl';
 
@@ -138,7 +138,7 @@ if (isBrowser) {
 
     load: 'languageOnly',
     simplifyPluralSuffix: true,
-  });
+  } as InitOptions);
 
   // RTL language detection and document direction setup
   i18n.on('languageChanged', (lng) => {
@@ -180,7 +180,7 @@ if (isBrowser) {
 
     load: 'languageOnly',
     simplifyPluralSuffix: true,
-  });
+  } as InitOptions);
 }
 
 export default i18n;

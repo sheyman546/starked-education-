@@ -1581,43 +1581,6 @@ export const toggleQuizPublishSchema: ValidationSchema = {
 };
 
 // ---------------------------------------------------------------------------
-// Holographic Storage Schemas
-// ---------------------------------------------------------------------------
-
-export const encodeContentSchema: ValidationSchema = {
-  body: Joi.object({
-    content: Joi.string().required(),
-    contentType: Joi.string()
-      .valid("text", "json", "binary", "code")
-      .optional(),
-    redundancy: Joi.number().integer().min(1).max(10).optional(),
-    encryptionKey: Joi.string().optional(),
-    metadata: Joi.object().optional(),
-  }),
-};
-
-export const decodeContentSchema: ValidationSchema = {
-  params: Joi.object({
-    hash: Joi.string().trim().min(1).required(),
-  }),
-};
-
-export const parallelAccessSchema: ValidationSchema = {
-  body: Joi.object({
-    contentHash: Joi.string().trim().min(1).required(),
-    accessPattern: Joi.array().items(Joi.string()).min(1).required(),
-  }),
-};
-
-export const optimizeStorageSchema: ValidationSchema = {
-  body: Joi.object({
-    targetRedundancy: Joi.number().integer().min(1).max(20).optional(),
-    strategy: Joi.string().valid("spatial", "temporal", "hybrid").optional(),
-    storageNodes: Joi.array().items(Joi.string()).optional(),
-  }),
-};
-
-// ---------------------------------------------------------------------------
 // Event Logger Schemas
 // ---------------------------------------------------------------------------
 
