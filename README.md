@@ -47,7 +47,9 @@ StarkEd is a decentralized learning and credential-verification platform built o
 
 ```bash
 cd contracts
-cargo test --release -- --nocapture bench_gas
+cargo test --release bench_
+# or run the standalone gas benchmark example:
+cargo run --release --example bench_gas --features testutils
 ```
 
 ---
@@ -183,8 +185,9 @@ All four core Soroban contracts are deployed with one script:
 # 1. Set your funded testnet account
 export STELLAR_SECRET="S...your-testnet-secret-key..."
 
-# 2. Deploy all contracts to Testnet
-./scripts/deploy-testnet.sh testnet
+# 2. Deploy all contracts to Testnet (defaults to "all" roles)
+./scripts/deploy-testnet.sh
+# …or deploy a single role: ./scripts/deploy-testnet.sh credential
 ```
 
 What it does:
@@ -204,9 +207,12 @@ DYNAMIC_NFT_CONTRACT_ID=C...
 > **Manual, contract-by-contract commands:**
 >
 > ```bash
+> # 0. Build the contracts (from the repo root)
+> cd contracts && cargo build --release --target wasm32-unknown-unknown && cd ..
+>
 > # Deploy
 > soroban contract deploy \
->   --wasm target/wasm32-unknown-unknown/release/starked_education_contracts.wasm \
+>   --wasm contracts/target/wasm32-unknown-unknown/release/starked_education_contracts.wasm \
 >   --source-account "$STELLAR_SECRET" \
 >   --rpc-url https://soroban-testnet.stellar.org \
 >   --network-passphrase "Test SDF Network ; September 2015"

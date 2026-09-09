@@ -30,10 +30,16 @@
 set -euo pipefail
 
 # ─── Configuration ───────────────────────────────────────────────────────────
+# Resolve the repository root (parent of scripts/) so the script works no
+# matter which directory it is invoked from.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CONTRACTS_DIR="$REPO_ROOT/contracts"
+
 NETWORK="${1:-all}"
 RPC_URL="${SOROBAN_RPC:-https://soroban-testnet.stellar.org}"
 NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
-OUTPUT_ENV="deployed_contracts_testnet.env"
+OUTPUT_ENV="$REPO_ROOT/deployed_contracts_testnet.env"
 
 if [[ -z "${STELLAR_SECRET:-}" ]]; then
   echo "❌ STELLAR_SECRET is not set. Export a funded Testnet secret key first:"
@@ -56,7 +62,7 @@ echo "ℹ️  Using CLI: $CLI"
 # ─── Derive admin address from the secret key if not provided ───────────────
 if [[ -z "${STELLAR_ADMIN:-}" ]]; then
   if command -v node &>/dev/null; then
-    STELLAR_ADMIN=$(node -e "
+    STELLAR_ADMIN=$(cd "$REPO_ROOT" && node -e "
       const sdk = require('@stellar/stellar-sdk');
       console.log(sdk.Keypair.fromSecret(process.env.STELLAR_SECRET).publicKey());
     " 2>/dev/null || true)
@@ -69,7 +75,7 @@ if [[ -z "${STELLAR_ADMIN:-}" ]]; then
 fi
 
 # ─── Contract roles → WASM artifact ──────────────────────────────────────────
-WASM_PATH="target/wasm32-unknown-unknown/release/starked_education_contracts.wasm"
+WASM_PATH="$CONTRACTS_DIR/target/wasm32-unknown-unknown/release/starked_education_contracts.wasm"
 
 declare -A CONTRACTS=(
   [credential]="CREDENTIAL_REGISTRY_CONTRACT_ID"
@@ -80,7 +86,7 @@ declare -A CONTRACTS=(
 
 # ─── 1. Build contracts ──────────────────────────────────────────────────────
 echo "=== Building contracts (release, wasm32-unknown-unknown) ==="
-cargo build --release --target wasm32-unknown-unknown
+( cd "$CONTRACTS_DIR" && cargo build --release --target wasm32-unknown-unknown )
 
 if [[ ! -f "$WASM_PATH" ]]; then
   echo "❌ WASM artifact not found at $WASM_PATH"
@@ -139,15 +145,15 @@ fi
 # ─── 3. Merge into .env (idempotent) ────────────────────────────────────────
 echo ""
 echo "=== Updating .env ==="
-if [[ ! -f .env ]]; then
-  cp .env.example .env
+if [[ ! -f "$REPO_ROOT/.env" ]]; then
+  cp "$REPO_ROOT/.env.example" "$REPO_ROOT/.env"
 fi
 while IFS='=' read -r key value; do
   [[ -z "$key" || "$key" == \#* ]] && continue
-  if grep -q "^${key}=" .env; then
-    sed -i.bak "s|^${key}=.*|${key}=${value}|" .env && rm -f .env.bak
+  if grep -q "^${key}=" "$REPO_ROOT/.env"; then
+    sed -i.bak "s|^${key}=.*|${key}=${value}|" "$REPO_ROOT/.env" && rm -f "$REPO_ROOT/.env.bak"
   else
-    echo "${key}=${value}" >> .env
+    echo "${key}=${value}" >> "$REPO_ROOT/.env"
   fi
 done < "$OUTPUT_ENV"
 
