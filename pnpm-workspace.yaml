@@ -1,4 +1,4 @@
 allowBuilds:
-  aws-sdk: set this to true or false
-  ffmpeg-static: set this to true or false
-  sharp: set this to true or false
+  aws-sdk: true
+  ffmpeg-static: true
+  sharp: true
