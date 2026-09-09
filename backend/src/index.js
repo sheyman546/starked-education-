@@ -124,7 +124,17 @@ const collaborationService = initCollaborationService(server);
 const redis = new Redis({
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD
+  password: process.env.REDIS_PASSWORD,
+  // Queue commands until Redis reconnects instead of crashing the process
+  // after maxRetriesPerRequest (default 20) — the default throws an
+  // unhandled MaxRetriesPerRequestError on the first outage.
+  maxRetriesPerRequest: null
+});
+// Without this listener, a Redis outage emits an unhandled 'error' event and
+// takes down the whole API. Services that depend on Redis degrade gracefully
+// instead (they log and retry) — see backend/docs/RATE_LIMITING.md.
+redis.on('error', (err) => {
+  console.error('⚠️  Redis connection error:', err.message);
 });
 const secureCommService = new SecureRealtimeCommunication(websocketService.io, redis);
 

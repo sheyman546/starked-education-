@@ -20,7 +20,7 @@ import logger from "../utils/logger";
 import { randomUUID } from "crypto";
 import { WebContentScanner, AcademicDatabaseScanner } from "./webContentScanner";
 import { CodePlagiarismAnalyzer } from "./codePlagiarismAnalyzer";
-import { generateReport, ReportFormat } from "./reportGeneration";
+import { generateReport } from "./reportGeneration";
 
 export class PlagiarismDetectionService {
   private cache: Map<string, PlagiarismCacheEntry> = new Map();
@@ -38,7 +38,7 @@ export class PlagiarismDetectionService {
 
   async generateReport(
     reportId: string,
-    format: ReportFormat = "json",
+    format: "json" | "csv" | "html" = "json",
   ): Promise<string> {
     return generateReport(reportId, this.cache, format);
   }
