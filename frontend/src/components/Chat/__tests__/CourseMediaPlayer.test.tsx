@@ -10,13 +10,13 @@ jest.mock('@/hooks/useMediaPlayer', () => ({
 
 const basePlayer = {
   mediaRef: { current: null },
-  status: 'ready',
+  status: 'ready' as string,
   currentTime: 0,
   duration: 120,
   progress: 0,
-  resumePosition: null,
-  saveStatus: 'idle',
-  error: null,
+  resumePosition: null as number | null,
+  saveStatus: 'idle' as string,
+  error: null as string | null,
   retry: jest.fn(),
   saveNow: jest.fn(),
   seekTo: jest.fn()

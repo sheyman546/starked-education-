@@ -28,12 +28,16 @@ describe('ChatAssistant', () => {
       sendMessage: jest.fn().mockResolvedValue({ content: 'Mock response', attachments: [] }),
       isConnected: true,
       connectionStatus: 'connected',
-      socket: null
+      socket: null,
+      messages: []
     });
 
     mockUseSpeechRecognition.mockReturnValue({
       isListening: false,
       transcript: '',
+      interimTranscript: '',
+      error: null,
+      resetTranscript: jest.fn(),
       startListening: jest.fn(),
       stopListening: jest.fn(),
       supported: false
@@ -43,7 +47,12 @@ describe('ChatAssistant', () => {
       speak: jest.fn(),
       speaking: false,
       cancel: jest.fn(),
-      supported: false
+      supported: false,
+      pause: jest.fn(),
+      resume: jest.fn(),
+      paused: false,
+      voices: [],
+      error: null
     });
 
     // Mock store implementations
@@ -142,7 +151,8 @@ describe('ChatAssistant', () => {
       sendMessage: jest.fn(() => new Promise(() => {})),
       isConnected: true,
       connectionStatus: 'connected',
-      socket: null
+      socket: null,
+      messages: []
     });
 
     render(<ChatAssistant />);
@@ -160,6 +170,9 @@ describe('ChatAssistant', () => {
     mockUseSpeechRecognition.mockReturnValue({
       isListening: false,
       transcript: '',
+      interimTranscript: '',
+      error: null,
+      resetTranscript: jest.fn(),
       startListening: mockStartListening,
       stopListening: jest.fn(),
       supported: true
@@ -178,7 +191,8 @@ describe('ChatAssistant', () => {
       sendMessage: jest.fn(),
       isConnected: false,
       connectionStatus: 'disconnected',
-      socket: null
+      socket: null,
+      messages: []
     });
 
     render(<ChatAssistant />);

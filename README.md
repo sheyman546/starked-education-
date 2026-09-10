@@ -250,7 +250,7 @@ The backend ships a production `Dockerfile` and a `Procfile`. On Render (or Rail
 run the web process and migrations:
 
 ```bash
-# Render/Railway start command
+# Render/Railway start commandcommit
 web: sh -c "npm run migrate:up && node dist/index.js"
 ```
 

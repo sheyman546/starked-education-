@@ -256,7 +256,10 @@ fn test_profile_with_privacy_check() {
 
 #[test]
 fn test_username_uniqueness() {
-    let (env, client, user1, _admin) = create_test_env();
+    let env = Env::default();
+    let contract_id = env.register_contract(None, UserProfileContract);
+    let client = UserProfileContractClient::new(&env, &contract_id);
+    let user1 = Address::generate(&env);
     let user2 = Address::generate(&env);
 
     let username = String::from_str(&env, "uniqueusername");
@@ -267,10 +270,22 @@ fn test_username_uniqueness() {
     // First user creates profile with username
     client.create_or_update_profile(&user1, &username, &None, &None, &None, &privacy_level);
 
-    // Second user tries to use same username - should panic
+    // Second user tries to use same username - should panic. Client-raised panics
+    // abort the test process on this soroban-sdk 20.x host, so invoke the contract
+    // function directly (like the governance tests) for a catchable panic.
     let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
         env.mock_all_auths();
-        client.create_or_update_profile(&user2, &username, &None, &None, &None, &privacy_level);
+        env.as_contract(&contract_id, || {
+            UserProfileContract::create_or_update_profile(
+                env.clone(),
+                user2,
+                username,
+                None,
+                None,
+                None,
+                privacy_level,
+            );
+        });
     }));
 
     assert!(result.is_err());
